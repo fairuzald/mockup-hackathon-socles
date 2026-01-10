@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Game Rooms Collection
+    match /gameRooms/{roomId} {
+      // Allow anyone to read rooms (for joining)
+      allow read: if true;
+
+      // Allow creating new rooms
+      allow create: if request.resource.data.keys().hasAll(['id', 'hostId', 'hostName', 'players', 'phase', 'selectedPackId', 'composition', 'currentTurnIndex', 'seed'])
+                    && request.resource.data.players.size() >= 1
+                    && request.resource.data.players.size() <= 12;
+
+      // Allow updates by anyone in the room
+      // In production, you might want to validate player IDs
+      allow update: if request.resource.data.players.size() <= 12;
+
+      // Allow deleting (room cleanup)
+      allow delete: if true;
+    }
+
+    // Block all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

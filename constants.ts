@@ -1,15 +1,18 @@
 import { Pack, PackItem } from './types';
 
 export const TIERS_CONFIG = [
-  { id: 'S', label: 'S', color: 'bg-red-500', text: 'text-white' },
-  { id: 'A', label: 'A', color: 'bg-orange-400', text: 'text-black' },
-  { id: 'B', label: 'B', color: 'bg-yellow-400', text: 'text-black' },
-  { id: 'C', label: 'C', color: 'bg-green-400', text: 'text-black' },
-  { id: 'D', label: 'D', color: 'bg-blue-400', text: 'text-white' },
-  { id: 'F', label: 'F', color: 'bg-purple-400', text: 'text-white' },
+  { id: 'DIAMOND', label: 'Diamond', color: 'bg-cyan-400', text: 'text-white' },
+  { id: 'GOLD', label: 'Gold', color: 'bg-yellow-400', text: 'text-black' },
+  { id: 'SILVER', label: 'Silver', color: 'bg-slate-300', text: 'text-black' },
+  { id: 'BRONZE', label: 'Bronze', color: 'bg-amber-600', text: 'text-white' },
+  { id: 'TRASH', label: 'Trash', color: 'bg-stone-700', text: 'text-white' },
 ] as const;
 
-const generateItems = (count: number, type: PackItem['type'], prefix: string): PackItem[] => {
+const generateItems = (
+  count: number,
+  type: PackItem['type'],
+  prefix: string
+): PackItem[] => {
   return Array.from({ length: count }).map((_, i) => ({
     id: `${prefix}-${type}-${i}`,
     name: `${prefix} ${type} ${i + 1}`,

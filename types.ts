@@ -21,7 +21,7 @@ export interface Pack {
   themeColor: string;
 }
 
-export type Tier = 'S' | 'A' | 'B' | 'C' | 'D' | 'F';
+export type Tier = 'DIAMOND' | 'GOLD' | 'SILVER' | 'BRONZE' | 'TRASH';
 
 export interface AttachedItem extends PackItem {
   attachedBy: string; // player id
@@ -38,6 +38,10 @@ export interface GameState {
   seed: number; // For RNG consistency
 }
 
-export type TurnPhase = 'ANNOUNCE_LEADER' | 'REVEAL_CARD' | 'ATTACHING' | 'ATTACHED';
+export type TurnPhase =
+  | 'ANNOUNCE_LEADER'
+  | 'REVEAL_CARD'
+  | 'ATTACHING'
+  | 'ATTACHED';
 
 export const LOCAL_STORAGE_KEY = 'vibecheck_game_state_v2';
