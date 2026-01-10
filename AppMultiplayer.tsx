@@ -5,6 +5,7 @@ import PackSelection from './components/PackSelection';
 import ResultMultiplayer from './components/ResultMultiplayer';
 import RoomEntry from './components/RoomEntry';
 import RoomLobby from './components/RoomLobby';
+import { Button } from './components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { PACKS } from './constants';
 import { useGameRoom } from './hooks/useGameRoom';
@@ -176,7 +177,28 @@ const AppMultiplayer: React.FC = () => {
   // Game loop phase
   if (room.phase === 'GAME_LOOP' && room.selectedPackId) {
     const pack = PACKS.find(p => p.id === room.selectedPackId);
-    if (!pack) return null;
+
+    // If pack is missing (e.g. invalid ID or code update removed it), show error
+    if (!pack) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4 bg-red-50">
+          <Card className="max-w-md w-full border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600">Pack Not Found</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p>The selected pack ({room.selectedPackId}) no longer exists.</p>
+              <Button
+                onClick={() => (isHost ? resetGame() : leaveCurrentRoom())}
+                className="w-full"
+              >
+                {isHost ? 'Return to Lobby' : 'Leave Room'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-background text-primary p-4 flex flex-col items-center">
@@ -197,7 +219,16 @@ const AppMultiplayer: React.FC = () => {
   // Result phase
   if (room.phase === 'RESULT' && room.selectedPackId) {
     const pack = PACKS.find(p => p.id === room.selectedPackId);
-    if (!pack) return null;
+
+    if (!pack) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <Button onClick={() => (isHost ? resetGame() : leaveCurrentRoom())}>
+            Return to Lobby
+          </Button>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-background text-primary p-4 flex flex-col items-center">

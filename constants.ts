@@ -8,57 +8,62 @@ export const TIERS_CONFIG = [
   { id: 'TRASH', label: 'Trash', color: 'bg-stone-700', text: 'text-white' },
 ] as const;
 
-const generateItems = (
-  count: number,
-  type: PackItem['type'],
-  prefix: string
-): PackItem[] => {
-  return Array.from({ length: count }).map((_, i) => ({
-    id: `${prefix}-${type}-${i}`,
-    name: `${prefix} ${type} ${i + 1}`,
-    type,
-    imageUrl: `https://picsum.photos/seed/${prefix}-${type}-${i}/400/400`,
-  }));
-};
+// Helper to create specific items
+const createItem = (
+  name: string,
+  type: PackItem['type'] = 'base'
+): PackItem => ({
+  id: name.toLowerCase().replace(/\s+/g, '-'),
+  name,
+  type,
+  imageUrl: `https://picsum.photos/seed/${name.replace(/\s+/g, '-')}/400/400`,
+});
 
-// Hardcoded fun packs
 export const PACKS: Pack[] = [
   {
-    id: 'ramen-chaos',
-    name: 'Late Night Ramen',
-    description: 'The ultimate comfort food gone wrong (or right?).',
-    themeColor: 'bg-orange-100',
+    id: 'football-leagues',
+    name: 'Liga Sepak Bola',
+    description: 'Top leagues from around the world. Which one is the GOAT?',
+    themeColor: 'bg-blue-100',
     items: [
-      ...generateItems(5, 'base', 'Noodle'),
-      ...generateItems(5, 'topping', 'Egg'),
-      ...generateItems(5, 'atmosphere', 'Chili'),
-      ...generateItems(5, 'chaos', 'Mystery Sauce'),
+      createItem('Liga Inggris', 'base'),
+      createItem('Liga Indonesia', 'chaos'),
+      createItem('Liga Italia', 'base'),
+      createItem('Liga Arab', 'money' as any), // Cast for fun, will fallback to string
+      createItem('Liga Belanda', 'base'),
+      createItem('Liga Jerman', 'base'),
+      createItem('Liga Spanyol', 'base'),
     ],
   },
   {
-    id: 'coffee-snob',
-    name: 'Hipster Coffee',
-    description: 'Espresso, plants, and existential dread.',
-    themeColor: 'bg-stone-100',
+    id: 'mie-instan',
+    name: 'Mie Instan',
+    description: 'The holy grail of midnight snacks.',
+    themeColor: 'bg-yellow-100',
     items: [
-      ...generateItems(5, 'base', 'Latte Art'),
-      ...generateItems(5, 'topping', 'Pastry'),
-      ...generateItems(5, 'atmosphere', 'Laptop'),
-      ...generateItems(5, 'chaos', 'Succulent'),
+      createItem('Rendang', 'base'),
+      createItem('Goreng Biasa', 'base'),
+      createItem('Mie Aceh', 'base'),
+      createItem('Kari Ayam', 'base'),
+      createItem('Ayam Bawang', 'base'),
+      createItem('Soto', 'base'),
     ],
   },
   {
-    id: 'bbq-feast',
-    name: 'Backyard BBQ',
-    description: 'Grill master vibes only.',
-    themeColor: 'bg-red-50',
+    id: 'house-activity',
+    name: 'House Activity',
+    description: 'Chores you love to hate.',
+    themeColor: 'bg-green-100',
     items: [
-      ...generateItems(5, 'base', 'Steak'),
-      ...generateItems(5, 'topping', 'Corn'),
-      ...generateItems(5, 'atmosphere', 'Smoke'),
-      ...generateItems(5, 'chaos', 'Tongs'),
+      createItem('Moping', 'base'),
+      createItem('Brooming', 'base'),
+      createItem('Washing Dishes', 'chaos'),
+      createItem('Laundry', 'base'),
+      createItem('Taking out Trash', 'base'),
+      createItem('Cleaning Windows', 'base'),
+      createItem('Vacuuming', 'base'),
     ],
   },
 ];
 
-export const MAX_TURNS = 8; // Increased for Tier List fullness
+export const MAX_TURNS = 12; // Increased to allow more items to be placed
