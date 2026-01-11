@@ -1,4 +1,11 @@
-import { AlertCircle, Loader2, LogIn, Plus, Users } from 'lucide-react';
+import {
+  AlertCircle,
+  Loader2,
+  LogIn,
+  Plus,
+  RefreshCw,
+  Users,
+} from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -10,6 +17,7 @@ interface RoomEntryProps {
   loading: boolean;
   error: string | null;
   clearError: () => void;
+  clearSession: () => void;
 }
 
 type Mode = 'initial' | 'create' | 'join';
@@ -20,6 +28,7 @@ const RoomEntry: React.FC<RoomEntryProps> = ({
   loading,
   error,
   clearError,
+  clearSession,
 }) => {
   const [mode, setMode] = useState<Mode>('initial');
   const [name, setName] = useState('');
@@ -199,6 +208,15 @@ const RoomEntry: React.FC<RoomEntryProps> = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Clear session button for stuck sessions */}
+      <button
+        onClick={clearSession}
+        className="w-full text-center text-xs text-stone-400 hover:text-stone-600 transition-colors flex items-center justify-center gap-1.5 py-2"
+      >
+        <RefreshCw className="w-3 h-3" />
+        Having trouble? Clear session
+      </button>
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   GameRoom,
   createRoom,
+  deleteRoom,
   endGame,
   isFirebaseConfigured,
   joinRoom,
@@ -34,6 +35,9 @@ interface UseGameRoomReturn {
   endTheGame: (finalComposition: AttachedItem[]) => Promise<void>;
   resetGame: () => Promise<void>;
   clearError: () => void;
+  clearSession: () => void; // Clear local storage and reset state (for stuck sessions)
+  endAndDeleteRoom: () => Promise<void>; // Host only: End game and delete room completely
+  finishGameEarly: () => Promise<void>; // Host only: End game with current results
 }
 
 const PLAYER_ID_KEY = 'TierClash_player_id';
@@ -49,6 +53,10 @@ export const useGameRoom = (): UseGameRoomReturn => {
   const [roomCode, setRoomCode] = useState<string | null>(() => {
     return localStorage.getItem(ROOM_CODE_KEY);
   });
+
+  const isHost = room?.hostId === currentPlayerId;
+  const currentPlayer =
+    room?.players.find(p => p.id === currentPlayerId) || null;
 
   // Subscribe to room updates
   useEffect(() => {
@@ -83,9 +91,26 @@ export const useGameRoom = (): UseGameRoomReturn => {
     return () => unsubscribe();
   }, [roomCode, currentPlayerId]);
 
-  const isHost = room?.hostId === currentPlayerId;
-  const currentPlayer =
-    room?.players.find(p => p.id === currentPlayerId) || null;
+  // Monitor player count during active game phases (Host only)
+  useEffect(() => {
+    if (
+      isHost &&
+      room &&
+      (room.phase === 'GAME' || room.phase === 'PACK_SELECTION') &&
+      room.players.length < 2
+    ) {
+      // If player count drops below 2 during game, automatically finish the game
+      // This prevents stuck games or playing alone
+      const autoFinish = async () => {
+        try {
+          await endGame(room.id, room.composition);
+        } catch (err) {
+          console.error('Failed to auto-finish game:', err);
+        }
+      };
+      autoFinish();
+    }
+  }, [room, isHost]);
 
   const createNewRoom = useCallback(
     async (playerName: string): Promise<string | null> => {
@@ -253,6 +278,44 @@ export const useGameRoom = (): UseGameRoomReturn => {
     setError(null);
   }, []);
 
+  // Clear all local state and storage (for stuck sessions)
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(PLAYER_ID_KEY);
+    localStorage.removeItem(ROOM_CODE_KEY);
+    setCurrentPlayerId(null);
+    setRoomCode(null);
+    setRoom(null);
+    setError(null);
+  }, []);
+
+  // Host only: End and completely delete the room
+  const endAndDeleteRoom = useCallback(async (): Promise<void> => {
+    if (!roomCode || !isHost) return;
+
+    try {
+      await deleteRoom(roomCode);
+      // Clear local state after deletion
+      localStorage.removeItem(PLAYER_ID_KEY);
+      localStorage.removeItem(ROOM_CODE_KEY);
+      setCurrentPlayerId(null);
+      setRoomCode(null);
+      setRoom(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete room');
+    }
+  }, [roomCode, isHost]);
+
+  // Host only: Finish game early with current results
+  const finishGameEarly = useCallback(async (): Promise<void> => {
+    if (!roomCode || !isHost || !room) return;
+
+    try {
+      await endGame(roomCode, room.composition);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to finish game');
+    }
+  }, [roomCode, isHost, room]);
+
   return {
     room,
     loading,
@@ -270,5 +333,8 @@ export const useGameRoom = (): UseGameRoomReturn => {
     endTheGame,
     resetGame,
     clearError,
+    clearSession,
+    endAndDeleteRoom,
+    finishGameEarly,
   };
 };

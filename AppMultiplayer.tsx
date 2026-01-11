@@ -28,6 +28,9 @@ const AppMultiplayer: React.FC = () => {
     endTheGame,
     resetGame,
     clearError,
+    clearSession,
+    endAndDeleteRoom,
+    finishGameEarly,
   } = useGameRoom();
 
   // Firebase not configured - show setup instructions
@@ -117,6 +120,7 @@ const AppMultiplayer: React.FC = () => {
             loading={loading}
             error={error}
             clearError={clearError}
+            clearSession={clearSession}
           />
         </div>
         <Footer />
@@ -208,8 +212,13 @@ const AppMultiplayer: React.FC = () => {
             room={room}
             pack={pack}
             currentPlayer={currentPlayer}
+            isHost={isHost}
             onPlaceItem={placeItemOnBoard}
             onGameEnd={endTheGame}
+            onLeaveGame={leaveCurrentRoom}
+            onEndAndDeleteRoom={endAndDeleteRoom}
+            onRemovePlayer={removePlayer}
+            onFinishEarly={finishGameEarly}
           />
         </div>
         <Footer />

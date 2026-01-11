@@ -117,10 +117,8 @@ export const joinRoom = async (
     throw new Error('Room is full (max 6 players)');
   }
 
-  // Check if game already started
-  if (room.phase !== 'LOBBY') {
-    throw new Error('Game has already started');
-  }
+  // Allow joining at any phase - new players can spectate mid-game
+  // They'll get a turn in the next round
 
   await updateDoc(roomRef, {
     players: arrayUnion(player),
@@ -290,4 +288,10 @@ export const resetGameToLobby = async (roomCode: string): Promise<void> => {
     composition: [],
     currentTurnIndex: 0,
   });
+};
+
+// Delete a room completely (host only)
+export const deleteRoom = async (roomCode: string): Promise<void> => {
+  const roomRef = doc(ensureDb(), ROOMS_COLLECTION, roomCode.toUpperCase());
+  await deleteDoc(roomRef);
 };

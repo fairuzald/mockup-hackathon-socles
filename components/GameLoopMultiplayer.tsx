@@ -1,4 +1,16 @@
-import { ArrowRight, Check, Eye, Gavel, Hand, Loader2, X } from 'lucide-react';
+import {
+  ArrowRight,
+  Check,
+  Copy,
+  Eye,
+  Gavel,
+  Hand,
+  Loader2,
+  LogOut,
+  Trash2,
+  UserX,
+  X,
+} from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { GameRoom } from '../lib/firestore';
 import { cn, getRandomInt, mulberry32 } from '../lib/utils';
@@ -10,21 +22,33 @@ interface GameLoopMultiplayerProps {
   room: GameRoom;
   pack: Pack;
   currentPlayer: Player | null;
+  isHost: boolean;
   onPlaceItem: (item: AttachedItem, newTurnIndex: number) => Promise<void>;
   onGameEnd: (finalComposition: AttachedItem[]) => Promise<void>;
+  onLeaveGame: () => Promise<void>;
+  onEndAndDeleteRoom: () => Promise<void>;
+  onRemovePlayer: (player: Player) => Promise<void>;
+  onFinishEarly: () => Promise<void>;
 }
 
 const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
   room,
   pack,
   currentPlayer,
+  isHost,
   onPlaceItem,
   onGameEnd,
+  onLeaveGame,
+  onEndAndDeleteRoom,
+  onRemovePlayer,
+  onFinishEarly,
 }) => {
   const [showSplash, setShowSplash] = useState(true);
   const [tentativeTier, setTentativeTier] = useState<Tier | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
   const [showPackInfo, setShowPackInfo] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showPlayerMenu, setShowPlayerMenu] = useState(false);
 
   // Improved Drag State
   const [dragState, setDragState] = useState({
@@ -37,6 +61,17 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // Copy room code to clipboard
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(room.id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   // Create a deterministic shuffle of items based on room seed
   const shuffledItems = React.useMemo(() => {
@@ -287,11 +322,32 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     </div>
   );
 
+  // Room Code Chip component - displays room code with copy functionality
+  const RoomCodeChip = (
+    <button
+      onClick={handleCopyCode}
+      className="flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-sm text-stone-700 rounded-full shadow-md hover:shadow-lg hover:bg-white transition-all duration-200 border border-stone-200 group w-fit"
+      title="Click to copy room code"
+    >
+      <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
+        Room
+      </span>
+      <span className="text-sm font-black tracking-widest text-stone-900">
+        {room.id}
+      </span>
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-green-500" />
+      ) : (
+        <Copy className="w-3.5 h-3.5 text-stone-400 group-hover:text-stone-600 transition-colors" />
+      )}
+    </button>
+  );
+
   // Info button component for reuse - Floating pill design
   const InfoButton = (
     <button
       onClick={() => setShowPackInfo(true)}
-      className="absolute top-2 right-2 z-50 flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 border-2 border-white/30"
+      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 border-2 border-white/30 w-fit"
     >
       <span className="text-sm font-bold">View All Items</span>
       <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
@@ -300,82 +356,196 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     </button>
   );
 
+  // Leave game button
+  const LeaveButton = (
+    <button
+      onClick={onLeaveGame}
+      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 text-stone-600 rounded-full shadow-sm hover:bg-stone-200 hover:text-stone-800 transition-all duration-200 border border-stone-200 shrink-0"
+      title="Leave game"
+    >
+      <LogOut className="w-3.5 h-3.5" />
+      <span className="text-xs font-bold">Leave</span>
+    </button>
+  );
+
+  // Kick player button (host only)
+  const ManagePlayersButton = isHost && (
+    <button
+      onClick={() => setShowPlayerMenu(true)}
+      className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 text-stone-600 rounded-full shadow-sm hover:bg-stone-200 hover:text-stone-800 transition-all duration-200 border border-stone-200 shrink-0"
+      title="Manage players"
+    >
+      <UserX className="w-3.5 h-3.5" />
+      <span className="text-xs font-bold">Kick</span>
+    </button>
+  );
+
+  // End room button (host only)
+  const EndRoomButton = isHost && (
+    <button
+      onClick={onEndAndDeleteRoom}
+      className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-full shadow-sm hover:bg-red-100 hover:text-red-700 transition-all duration-200 border border-red-200 shrink-0"
+      title="End game and delete room"
+    >
+      <Trash2 className="w-3.5 h-3.5" />
+      <span className="text-xs font-bold">End</span>
+    </button>
+  );
+
+  // Player Management Modal
+  const PlayerMenuModal = showPlayerMenu && (
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={() => setShowPlayerMenu(false)}
+    >
+      <div
+        className="bg-white rounded-2xl border-4 border-stone-900 shadow-[8px_8px_0px_0px_rgba(28,25,23,1)] max-w-sm w-full overflow-hidden animate-pop-in"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b-2 border-stone-200 bg-stone-50">
+          <h3 className="text-lg font-black text-stone-900">Manage Players</h3>
+          <button
+            onClick={() => setShowPlayerMenu(false)}
+            className="p-2 hover:bg-stone-200 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-4 space-y-2">
+          {room.players.map(player => (
+            <div
+              key={player.id}
+              className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-200"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-white border border-stone-200 flex items-center justify-center font-bold text-xs">
+                  {player.name.substring(0, 1).toUpperCase()}
+                </div>
+                <span className="font-bold text-sm">
+                  {player.name}
+                  {player.id === currentPlayer?.id && ' (You)'}
+                </span>
+              </div>
+              {player.id !== currentPlayer?.id ? (
+                <button
+                  onClick={async () => {
+                    if (
+                      confirm(`Are you sure you want to kick ${player.name}?`)
+                    ) {
+                      await onRemovePlayer(player);
+                    }
+                  }}
+                  className="p-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition-colors"
+                  title="Kick player"
+                >
+                  <UserX className="w-4 h-4" />
+                </button>
+              ) : (
+                <span className="text-xs text-stone-400 font-bold bg-stone-200 px-2 py-1 rounded">
+                  HOST
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Header bar with room code, info button, and controls
+  const HeaderBar = (
+    <div className="w-full mb-4 space-y-2">
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex flex-wrap items-center gap-2 flex-1">
+          {RoomCodeChip}
+          {LeaveButton}
+          {ManagePlayersButton}
+          {EndRoomButton}
+        </div>
+        {InfoButton}
+      </div>
+      {PlayerMenuModal}
+    </div>
+  );
+
   if (showSplash) {
     return (
       <>
         {PackInfoModal}
-        <div className="flex flex-col h-full w-full max-w-4xl mx-auto animate-pop-in pb-8 relative items-center justify-center min-h-[60vh] px-4">
-          {InfoButton}
-          <div
-            className="text-center mb-8 animate-fade-in"
-            style={{ animationDelay: '0.1s' }}
-          >
-            <h2 className="text-xl text-stone-500 font-bold uppercase tracking-widest">
-              Turn {room.currentTurnIndex + 1} / {pack.items.length}
-            </h2>
-          </div>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-12 w-full">
+        <div className="flex flex-col h-full w-full max-w-4xl mx-auto animate-pop-in pb-8 px-4">
+          {HeaderBar}
+          <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
             <div
-              className="flex flex-col items-center space-y-4 animate-pop-in"
-              style={{ animationDelay: '0.2s' }}
+              className="text-center mb-8 animate-fade-in"
+              style={{ animationDelay: '0.1s' }}
             >
-              <div className="relative group">
-                <div
-                  className={cn(
-                    'text-white w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-4 z-10 relative transition-transform duration-500 group-hover:scale-105',
-                    isCurrentLeader
-                      ? 'bg-accent border-orange-200'
-                      : 'bg-stone-900 border-stone-200'
-                  )}
-                >
-                  <span className="text-4xl font-black">
-                    {leader?.name.substring(0, 2).toUpperCase()}
-                  </span>
-                </div>
-                <div className="absolute -top-2 -right-2 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white shadow-sm transform rotate-12 flex items-center gap-1 animate-bounce-slow z-[1000000]">
-                  <Gavel className="w-3 h-3" />
-                  JUDGE
-                </div>
-                {isCurrentLeader && (
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-                    You!
-                  </div>
-                )}
-              </div>
-              <div className="text-center">
-                <h3 className="text-2xl font-black text-stone-900">
-                  {leader?.name}
-                </h3>
-                <p className="text-stone-500 font-medium">is ranking...</p>
-              </div>
+              <h2 className="text-xl text-stone-500 font-bold uppercase tracking-widest">
+                Turn {room.currentTurnIndex + 1} / {pack.items.length}
+              </h2>
             </div>
-            <div className="text-stone-300 transform md:rotate-0 rotate-90 animate-pulse-fast">
-              <ArrowRight className="w-8 h-8" />
-            </div>
-            {currentCard && (
+            <div className="flex flex-col md:flex-row items-center justify-center gap-12 w-full">
               <div
                 className="flex flex-col items-center space-y-4 animate-pop-in"
-                style={{ animationDelay: '0.4s' }}
+                style={{ animationDelay: '0.2s' }}
               >
-                <div className="w-48 h-48 bg-white p-3 rounded-xl shadow-xl border-4 border-stone-900 transform -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105">
-                  <div className="w-full h-full rounded-lg overflow-hidden bg-stone-100 relative">
-                    <img
-                      src={currentCard.imageUrl}
-                      alt={currentCard.name}
-                      className="w-full h-full object-cover"
-                    />
+                <div className="relative group">
+                  <div
+                    className={cn(
+                      'text-white w-32 h-32 rounded-full flex items-center justify-center shadow-2xl border-4 z-10 relative transition-transform duration-500 group-hover:scale-105',
+                      isCurrentLeader
+                        ? 'bg-accent border-orange-200'
+                        : 'bg-stone-900 border-stone-200'
+                    )}
+                  >
+                    <span className="text-4xl font-black">
+                      {leader?.name.substring(0, 2).toUpperCase()}
+                    </span>
                   </div>
+                  <div className="absolute -top-2 -right-2 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white shadow-sm transform rotate-12 flex items-center gap-1 animate-bounce-slow z-[1000000]">
+                    <Gavel className="w-3 h-3" />
+                    JUDGE
+                  </div>
+                  {isCurrentLeader && (
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                      You!
+                    </div>
+                  )}
                 </div>
                 <div className="text-center">
-                  <h3 className="text-2xl font-black text-stone-900 max-w-[200px] leading-tight">
-                    {currentCard.name}
+                  <h3 className="text-2xl font-black text-stone-900">
+                    {leader?.name}
                   </h3>
-                  <p className="text-xs text-stone-400 font-bold uppercase mt-1">
-                    {currentCard.type}
-                  </p>
+                  <p className="text-stone-500 font-medium">is ranking...</p>
                 </div>
               </div>
-            )}
+              <div className="text-stone-300 transform md:rotate-0 rotate-90 animate-pulse-fast">
+                <ArrowRight className="w-8 h-8" />
+              </div>
+              {currentCard && (
+                <div
+                  className="flex flex-col items-center space-y-4 animate-pop-in"
+                  style={{ animationDelay: '0.4s' }}
+                >
+                  <div className="w-48 h-48 bg-white p-3 rounded-xl shadow-xl border-4 border-stone-900 transform -rotate-3 transition-transform duration-500 hover:rotate-0 hover:scale-105">
+                    <div className="w-full h-full rounded-lg overflow-hidden bg-stone-100 relative">
+                      <img
+                        src={currentCard.imageUrl}
+                        alt={currentCard.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-2xl font-black text-stone-900 max-w-[200px] leading-tight">
+                      {currentCard.name}
+                    </h3>
+                    <p className="text-xs text-stone-400 font-bold uppercase mt-1">
+                      {currentCard.type}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </>
@@ -387,17 +557,27 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     return (
       <>
         {PackInfoModal}
-        <div className="flex flex-col h-full w-full max-w-4xl mx-auto animate-slide-up pb-8 relative">
-          {InfoButton}
+        <div className="flex flex-col h-full w-full max-w-4xl mx-auto animate-slide-up pb-8 px-2">
+          {HeaderBar}
 
-          <div className="flex-1 overflow-y-auto mb-4">
-            <TierBoard
-              items={room.composition}
-              players={room.players}
-              isDragging={false}
-              tentativePlacement={null}
-              onPickupTentative={() => {}}
-            />
+          <div className="flex-1 overflow-y-auto mb-4 relative flex">
+            {/* Rank Direction Indicator */}
+            <div className="w-6 mr-1 flex flex-col items-center justify-center py-4 bg-stone-100 rounded-full my-auto h-[80%] opacity-50 hover:opacity-100 transition-opacity self-center">
+              <span className="text-[10px] font-black tracking-widest text-stone-400 uppercase -rotate-90 whitespace-nowrap mb-2">
+                Higher
+              </span>
+              <ArrowRight className="w-3 h-3 text-stone-400 -rotate-90 mt-1" />
+            </div>
+
+            <div className="flex-1">
+              <TierBoard
+                items={room.composition}
+                players={room.players}
+                isDragging={false}
+                tentativePlacement={null}
+                onPickupTentative={() => {}}
+              />
+            </div>
           </div>
 
           <div className="min-h-[200px] flex items-center justify-center">
@@ -437,21 +617,31 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
   return (
     <>
       {PackInfoModal}
-      <div className="flex flex-col h-full w-full max-w-4xl mx-auto animate-slide-up pb-8 relative touch-none select-none">
-        {InfoButton}
+      <div className="flex flex-col h-full w-full max-w-4xl mx-auto animate-slide-up pb-8 px-2 touch-none select-none">
+        {HeaderBar}
 
-        <div className="flex-1 overflow-y-auto mb-4 opacity-100 transition-opacity">
-          <TierBoard
-            items={room.composition}
-            players={room.players}
-            isDragging={dragState.isDragging}
-            tentativePlacement={
-              tentativeTier && currentCard
-                ? { item: currentCard, tier: tentativeTier }
-                : null
-            }
-            onPickupTentative={handlePickupTentative}
-          />
+        <div className="flex-1 overflow-y-auto mb-4 opacity-100 transition-opacity relative flex">
+          {/* Rank Direction Indicator */}
+          <div className="w-6 mr-1 flex flex-col items-center justify-center py-4 bg-stone-100 rounded-full my-auto h-[80%] opacity-50 hover:opacity-100 transition-opacity self-center">
+            <span className="text-[10px] font-black tracking-widest text-stone-400 uppercase -rotate-90 whitespace-nowrap mb-2">
+              Higher
+            </span>
+            <ArrowRight className="w-3 h-3 text-stone-400 -rotate-90 mt-1" />
+          </div>
+
+          <div className="flex-1">
+            <TierBoard
+              items={room.composition}
+              players={room.players}
+              isDragging={dragState.isDragging}
+              tentativePlacement={
+                tentativeTier && currentCard
+                  ? { item: currentCard, tier: tentativeTier }
+                  : null
+              }
+              onPickupTentative={handlePickupTentative}
+            />
+          </div>
         </div>
 
         <div className="min-h-[250px] flex items-end justify-center relative z-50">
