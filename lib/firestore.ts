@@ -113,8 +113,8 @@ export const joinRoom = async (
   }
 
   // Check max players
-  if (room.players.length >= 12) {
-    throw new Error('Room is full (max 12 players)');
+  if (room.players.length >= 6) {
+    throw new Error('Room is full (max 6 players)');
   }
 
   // Check if game already started

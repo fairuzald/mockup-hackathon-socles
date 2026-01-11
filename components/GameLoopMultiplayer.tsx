@@ -50,11 +50,16 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     return items;
   }, [pack.items, room.seed]);
 
-  const leaderIndex = getRandomInt(
+  // Round-robin turn order:
+  // First leader is randomly determined by seed, then we cycle through players in order
+  const startingPlayerIndex = getRandomInt(
     0,
     room.players.length - 1,
-    mulberry32(room.seed + room.currentTurnIndex)
+    mulberry32(room.seed) // Only use seed, not turn index, so starting player is fixed
   );
+  // Cycle through players: (startingIndex + turnIndex) % playerCount
+  const leaderIndex =
+    (startingPlayerIndex + room.currentTurnIndex) % room.players.length;
   const leader = room.players[leaderIndex];
 
   // Pick the card for this turn from the shuffled list that hasn't been played yet
