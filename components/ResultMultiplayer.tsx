@@ -1,5 +1,6 @@
-import { LogOut, RotateCcw, Share2, Trophy } from 'lucide-react';
-import React from 'react';
+import { toPng } from 'html-to-image';
+import { Camera, Loader2, LogOut, RotateCcw, Trophy } from 'lucide-react';
+import React, { useRef, useState } from 'react';
 import { GameRoom } from '../lib/firestore';
 import { cn } from '../lib/utils';
 import { Pack } from '../types';
@@ -21,21 +22,55 @@ const ResultMultiplayer: React.FC<ResultMultiplayerProps> = ({
   onReset,
   onLeave,
 }) => {
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const handleShare = async () => {
-    const shareText = `Check out our tier list from VibeCheck Chaos Edition! 🎉 Room: ${room.id}`;
+    if (!boardRef.current) return;
+
+    setIsDownloading(true);
+
+    const download = (dataUrl: string) => {
+      const link = document.createElement('a');
+      link.download = `vibecheck-results-${room.id}.png`;
+      link.href = dataUrl;
+      link.click();
+    };
+
+    const options = {
+      quality: 0.95,
+      pixelRatio: 2,
+      backgroundColor: '#1c1c1c',
+      style: { overflow: 'visible', height: 'auto', maxHeight: 'none' },
+    } as any;
 
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'VibeCheck Results',
-          text: shareText,
-          url: window.location.href,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareText);
-      }
+      // Attempt 1: Standard Capture
+      const dataUrl = await toPng(boardRef.current, {
+        ...options,
+        cacheBust: true,
+        useCORS: true,
+        skipOnError: true,
+      });
+      download(dataUrl);
     } catch (err) {
-      // User cancelled
+      console.warn('Standard capture failed, trying fallback...', err);
+      try {
+        // Attempt 2: "Security Bypass" - Exclude images
+        const dataUrl = await toPng(boardRef.current, {
+          ...options,
+          filter: (node: any) => node.tagName !== 'IMG',
+        });
+        download(dataUrl);
+        alert(
+          'Saved with restricted images hidden. Some content might be missing due to browser security settings.'
+        );
+      } catch (finalErr) {
+        console.error('All capture attempts failed', finalErr);
+        alert('Failed to generate image. Please take a manual screenshot.');
+      }
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -66,7 +101,10 @@ const ResultMultiplayer: React.FC<ResultMultiplayerProps> = ({
       </div>
 
       {/* Tier Board */}
-      <div className="flex-1 overflow-y-auto mb-4">
+      <div
+        className="flex-1 overflow-y-auto mb-4 bg-[#1c1c1c] rounded-lg"
+        ref={boardRef}
+      >
         <TierBoard
           items={room.composition}
           players={room.players}
@@ -80,12 +118,17 @@ const ResultMultiplayer: React.FC<ResultMultiplayerProps> = ({
       <div className="space-y-3">
         <Button
           onClick={handleShare}
+          disabled={isDownloading}
           size="lg"
           variant="outline"
-          className="w-full text-lg border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)]"
+          className="w-full text-lg border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] hover:bg-stone-100"
         >
-          <Share2 className="w-5 h-5 mr-2" />
-          Share Results
+          {isDownloading ? (
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          ) : (
+            <Camera className="w-5 h-5 mr-2" />
+          )}
+          {isDownloading ? 'Saving...' : 'Save Screenshot'}
         </Button>
 
         {isHost ? (

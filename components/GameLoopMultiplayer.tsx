@@ -1,9 +1,8 @@
 import { ArrowRight, Check, Eye, Gavel, Hand, Loader2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
-import { MAX_TURNS } from '../constants';
 import { GameRoom } from '../lib/firestore';
-import { cn, getRandomInt, getRandomItem, mulberry32 } from '../lib/utils';
-import { AttachedItem, Pack, PackItem, Player, Tier } from '../types';
+import { cn, getRandomInt, mulberry32 } from '../lib/utils';
+import { AttachedItem, Pack, Player, Tier } from '../types';
 import TierBoard from './TierBoard';
 import { Button } from './ui/button';
 
@@ -38,13 +37,18 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
 
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Calculate current turn data using consistent RNG
-  const rng = useRef(mulberry32(room.seed + room.currentTurnIndex));
+  // Create a deterministic shuffle of items based on room seed
+  const shuffledItems = React.useMemo(() => {
+    const items = [...pack.items];
+    const rng = mulberry32(room.seed);
 
-  // Recalculate leader and card when turn changes
-  useEffect(() => {
-    rng.current = mulberry32(room.seed + room.currentTurnIndex);
-  }, [room.seed, room.currentTurnIndex]);
+    // Fisher-Yates shuffle
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
+    return items;
+  }, [pack.items, room.seed]);
 
   const leaderIndex = getRandomInt(
     0,
@@ -52,16 +56,23 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     mulberry32(room.seed + room.currentTurnIndex)
   );
   const leader = room.players[leaderIndex];
-  const currentCard: PackItem = getRandomItem(
-    pack.items,
-    mulberry32(room.seed + room.currentTurnIndex + 1000)
-  );
+
+  // Pick the card for this turn from the shuffled list that hasn't been played yet
+  const currentCard = React.useMemo(() => {
+    return shuffledItems.find(
+      item => !room.composition.some(placed => placed.id === item.id)
+    );
+  }, [shuffledItems, room.composition]);
 
   const isCurrentLeader = currentPlayer?.id === leader?.id;
 
   // Check for game end - any player can trigger this
   useEffect(() => {
-    if (room.currentTurnIndex >= MAX_TURNS && room.phase === 'GAME_LOOP') {
+    // Game ends when all items have been played
+    if (
+      room.composition.length >= pack.items.length &&
+      room.phase === 'GAME_LOOP'
+    ) {
       // Only host triggers the end to avoid race conditions
       if (currentPlayer?.id === room.hostId) {
         onGameEnd(room.composition);
@@ -74,6 +85,7 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     room.hostId,
     onGameEnd,
     currentPlayer?.id,
+    pack.items.length,
   ]);
 
   // Splash screen timer - simplified logic
@@ -178,7 +190,7 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     e.preventDefault();
     setTentativeTier(null);
 
-    const width = 30;
+    const width = 300;
     const height = 160;
 
     const originX = width * 0.85;
@@ -201,7 +213,7 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
           style={{ animationDelay: '0.1s' }}
         >
           <h2 className="text-xl text-stone-500 font-bold uppercase tracking-widest">
-            Turn {room.currentTurnIndex + 1} / {MAX_TURNS}
+            Turn {room.currentTurnIndex + 1} / {pack.items.length}
           </h2>
         </div>
         <div className="flex flex-col md:flex-row items-center justify-center gap-12 w-full">
