@@ -48,8 +48,8 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
 
   const handleShare = async () => {
     const shareData = {
-      title: 'Join my VibeCheck game!',
-      text: `Join my VibeCheck Chaos Edition game! Room code: ${room.id}`,
+      title: 'Join my TierClash game!',
+      text: `Join my TierClash Holiday Edition game! Room code: ${room.id}`,
       url: window.location.href,
     };
 
@@ -79,9 +79,9 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
     <div className="w-full max-w-md mx-auto space-y-6 animate-slide-up">
       <div className="text-center space-y-2">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-stone-900">
-          VibeCheck
+          TierClash
         </h1>
-        <p className="text-stone-500 font-medium">Chaos Edition</p>
+        <p className="text-stone-500 font-medium">Holiday Edition</p>
       </div>
 
       {/* Room Code Card */}

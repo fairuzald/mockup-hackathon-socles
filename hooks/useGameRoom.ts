@@ -36,8 +36,8 @@ interface UseGameRoomReturn {
   clearError: () => void;
 }
 
-const PLAYER_ID_KEY = 'vibecheck_player_id';
-const ROOM_CODE_KEY = 'vibecheck_room_code';
+const PLAYER_ID_KEY = 'TierClash_player_id';
+const ROOM_CODE_KEY = 'TierClash_room_code';
 
 export const useGameRoom = (): UseGameRoomReturn => {
   const [room, setRoom] = useState<GameRoom | null>(null);
@@ -199,13 +199,18 @@ export const useGameRoom = (): UseGameRoomReturn => {
     async (packId: string): Promise<void> => {
       if (!roomCode || !isHost) return;
 
+      if (room?.playedPackIds?.includes(packId)) {
+        setError('This pack has already been played!');
+        return;
+      }
+
       try {
         await selectPackForRoom(roomCode, packId);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to select pack');
       }
     },
-    [roomCode, isHost]
+    [roomCode, isHost, room]
   );
 
   const placeItemOnBoard = useCallback(

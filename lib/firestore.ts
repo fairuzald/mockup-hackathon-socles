@@ -41,6 +41,7 @@ export interface GameRoom {
   composition: AttachedItem[];
   currentTurnIndex: number;
   seed: number;
+  playedPackIds: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -79,7 +80,9 @@ export const createRoom = async (host: Player): Promise<string> => {
     selectedPackId: null,
     composition: [],
     currentTurnIndex: 0,
+
     seed: Date.now(),
+    playedPackIds: [],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -159,7 +162,12 @@ export const updateRoomState = async (
   updates: Partial<
     Pick<
       GameRoom,
-      'phase' | 'selectedPackId' | 'composition' | 'currentTurnIndex' | 'seed'
+      | 'phase'
+      | 'selectedPackId'
+      | 'composition'
+      | 'currentTurnIndex'
+      | 'seed'
+      | 'playedPackIds'
     >
   >
 ): Promise<void> => {
@@ -260,6 +268,18 @@ export const endGame = async (
     composition: finalComposition,
     phase: 'RESULT',
   });
+
+  const roomRef = doc(ensureDb(), ROOMS_COLLECTION, roomCode.toUpperCase());
+  // Add the current pack to the history of played packs
+  const roomSnap = await getDoc(roomRef);
+  if (roomSnap.exists()) {
+    const data = roomSnap.data() as GameRoom;
+    if (data.selectedPackId) {
+      await updateDoc(roomRef, {
+        playedPackIds: arrayUnion(data.selectedPackId),
+      });
+    }
+  }
 };
 
 // Reset game to lobby

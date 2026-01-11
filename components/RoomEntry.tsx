@@ -46,9 +46,9 @@ const RoomEntry: React.FC<RoomEntryProps> = ({
     <div className="w-full max-w-md mx-auto space-y-6 animate-slide-up">
       <div className="text-center space-y-2">
         <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-stone-900">
-          VibeCheck
+          TierClash
         </h1>
-        <p className="text-stone-500 font-medium">Chaos Edition</p>
+        <p className="text-stone-500 font-medium">Holiday Edition</p>
       </div>
 
       <Card className="border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)]">

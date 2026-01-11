@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { GameState, Player, LOCAL_STORAGE_KEY } from './types';
-import { PACKS } from './constants';
+import React, { useEffect, useState } from 'react';
+import GameLoop from './components/GameLoop';
 import Lobby from './components/Lobby';
 import PackSelection from './components/PackSelection';
-import GameLoop from './components/GameLoop';
 import Result from './components/Result';
+import { PACKS } from './constants';
+import { GameState, LOCAL_STORAGE_KEY, Player } from './types';
 
 const App: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -13,7 +13,7 @@ const App: React.FC = () => {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        console.error("Failed to parse game state", e);
+        console.error('Failed to parse game state', e);
       }
     }
     return {
@@ -41,7 +41,10 @@ const App: React.FC = () => {
   };
 
   const removePlayer = (id: string) => {
-    setGameState(prev => ({ ...prev, players: prev.players.filter(p => p.id !== id) }));
+    setGameState(prev => ({
+      ...prev,
+      players: prev.players.filter(p => p.id !== id),
+    }));
   };
 
   const startGame = () => {
@@ -63,7 +66,7 @@ const App: React.FC = () => {
     setGameState(prev => ({
       ...prev,
       composition: finalComposition,
-      phase: 'RESULT'
+      phase: 'RESULT',
     }));
   };
 
@@ -78,8 +81,8 @@ const App: React.FC = () => {
   };
 
   const backToLobby = () => {
-      setGameState(prev => ({ ...prev, phase: 'LOBBY' }));
-  }
+    setGameState(prev => ({ ...prev, phase: 'LOBBY' }));
+  };
 
   return (
     <div className="min-h-screen bg-background text-primary p-4 flex flex-col items-center">
@@ -114,10 +117,10 @@ const App: React.FC = () => {
           />
         )}
       </div>
-      
+
       {/* Footer */}
       <footer className="w-full text-center py-4 text-xs text-stone-400">
-        VibeCheck Chaos Edition &copy; {new Date().getFullYear()}
+        TierClash Holiday Edition &copy; {new Date().getFullYear()}
       </footer>
     </div>
   );

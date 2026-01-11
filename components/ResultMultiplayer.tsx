@@ -32,7 +32,7 @@ const ResultMultiplayer: React.FC<ResultMultiplayerProps> = ({
 
     const download = (dataUrl: string) => {
       const link = document.createElement('a');
-      link.download = `vibecheck-results-${room.id}.png`;
+      link.download = `tierclash-results-${room.id}.png`;
       link.href = dataUrl;
       link.click();
     };
@@ -128,7 +128,7 @@ const ResultMultiplayer: React.FC<ResultMultiplayerProps> = ({
           ) : (
             <Camera className="w-5 h-5 mr-2" />
           )}
-          {isDownloading ? 'Saving...' : 'Save Screenshot'}
+          {isDownloading ? 'Saving...' : 'Save Imae'}
         </Button>
 
         {isHost ? (

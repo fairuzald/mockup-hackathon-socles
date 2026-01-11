@@ -37,9 +37,9 @@ const AppMultiplayer: React.FC = () => {
         <div className="w-full max-w-md flex-1 flex flex-col justify-center">
           <div className="text-center space-y-2 mb-6">
             <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl text-stone-900">
-              VibeCheck
+              TierClash
             </h1>
-            <p className="text-stone-500 font-medium">Chaos Edition</p>
+            <p className="text-stone-500 font-medium">Holiday Edition</p>
           </div>
 
           <Card className="border-2 border-amber-500 bg-amber-50 shadow-[4px_4px_0px_0px_rgba(245,158,11,0.5)]">
@@ -151,6 +151,7 @@ const AppMultiplayer: React.FC = () => {
           {isHost ? (
             <PackSelection
               onSelect={selectPack}
+              playedPackIds={room.playedPackIds || []}
               onBack={async () => {
                 await resetGame();
               }}
@@ -251,7 +252,7 @@ const AppMultiplayer: React.FC = () => {
 
 const Footer: React.FC = () => (
   <footer className="w-full text-center py-4 text-xs text-stone-400">
-    VibeCheck Chaos Edition &copy; {new Date().getFullYear()}
+    TierClash Holiday Edition &copy; {new Date().getFullYear()}
   </footer>
 );
 

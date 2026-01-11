@@ -44,4 +44,4 @@ export type TurnPhase =
   | 'ATTACHING'
   | 'ATTACHED';
 
-export const LOCAL_STORAGE_KEY = 'vibecheck_game_state_v2';
+export const LOCAL_STORAGE_KEY = 'TierClash_game_state_v2';

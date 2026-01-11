@@ -8,9 +8,14 @@ import { Card, CardContent } from './ui/card';
 interface PackSelectionProps {
   onSelect: (packId: string) => void;
   onBack: () => void;
+  playedPackIds?: string[];
 }
 
-const PackSelection: React.FC<PackSelectionProps> = ({ onSelect, onBack }) => {
+const PackSelection: React.FC<PackSelectionProps> = ({
+  onSelect,
+  onBack,
+  playedPackIds = [],
+}) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
@@ -182,12 +187,25 @@ const PackSelection: React.FC<PackSelectionProps> = ({ onSelect, onBack }) => {
                       <Button
                         onClick={e => {
                           e.stopPropagation(); // Prevent drag triggers
+                          if (playedPackIds.includes(pack.id)) return;
                           onSelect(pack.id);
                         }}
-                        className="w-full h-12 md:h-16 text-base md:text-xl font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-lg active:translate-y-1 active:shadow-sm transition-all duration-200"
+                        disabled={playedPackIds.includes(pack.id)}
+                        className={cn(
+                          'w-full h-12 md:h-16 text-base md:text-xl font-bold shadow-lg active:translate-y-1 active:shadow-sm transition-all duration-200',
+                          playedPackIds.includes(pack.id)
+                            ? 'bg-stone-300 text-stone-500 cursor-not-allowed hover:bg-stone-300 shadow-none border-2 border-dashed border-stone-400'
+                            : 'bg-stone-900 hover:bg-stone-800 text-white'
+                        )}
                       >
-                        Select Vibe{' '}
-                        <Check className="w-5 h-5 md:w-6 md:h-6 ml-2" />
+                        {playedPackIds.includes(pack.id) ? (
+                          <>Already Played</>
+                        ) : (
+                          <>
+                            Select Vibe{' '}
+                            <Check className="w-5 h-5 md:w-6 md:h-6 ml-2" />
+                          </>
+                        )}
                       </Button>
                     </CardContent>
                   </Card>
