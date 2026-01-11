@@ -38,8 +38,8 @@ const Lobby: React.FC<LobbyProps> = ({
     }
 
     // 3. Max Limit Check (UI safety)
-    if (players.length >= 12) {
-      setError('Lobby is full (max 12 players).');
+    if (players.length >= 6) {
+      setError('Lobby is full (max 6 players).');
       return;
     }
 

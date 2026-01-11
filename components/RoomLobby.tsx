@@ -130,7 +130,7 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Users className="w-6 h-6" />
-              Players ({room.players.length}/12)
+              Players ({room.players.length}/6)
             </span>
           </CardTitle>
         </CardHeader>
