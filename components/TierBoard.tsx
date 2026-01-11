@@ -81,7 +81,24 @@ const TierBoard: React.FC<TierBoardProps> = ({
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 flex flex-wrap items-center gap-1.5 md:gap-3 p-1.5 md:p-3 relative min-h-[70px] md:min-h-[110px] content-center">
+            <div className="flex-1 flex flex-wrap items-center gap-1.5 md:gap-3 py-1.5 pr-1.5 pl-0.5 md:py-3 md:pr-3 md:pl-1 relative min-h-[70px] md:min-h-[110px] content-center">
+              {/* Tentative Item (The one currently being placed) */}
+              {isTentativeRow && tentativePlacement && (
+                <div
+                  className="relative w-14 h-14 md:w-24 md:h-24 bg-white rounded-md overflow-hidden border-2 border-stone-900 shadow-[0_0_15px_rgba(255,255,255,0.6)] z-30 cursor-grab active:cursor-grabbing animate-pop-in"
+                  onPointerDown={onPickupTentative}
+                >
+                  <img
+                    src={tentativePlacement.item.imageUrl}
+                    alt={tentativePlacement.item.name}
+                    className="w-full h-full object-cover opacity-90"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/0 transition-colors">
+                    <GripVertical className="text-white drop-shadow-md w-5 h-5 md:w-6 md:h-6" />
+                  </div>
+                </div>
+              )}
+
               {/* Committed Items */}
               {tierItems.map(item => {
                 const player = players.find(p => p.id === item.attachedBy);
@@ -113,23 +130,6 @@ const TierBoard: React.FC<TierBoardProps> = ({
                   </div>
                 );
               })}
-
-              {/* Tentative Item (The one currently being placed) */}
-              {isTentativeRow && tentativePlacement && (
-                <div
-                  className="relative w-14 h-14 md:w-24 md:h-24 bg-white rounded-md overflow-hidden border-2 border-stone-900 shadow-[0_0_15px_rgba(255,255,255,0.6)] z-30 cursor-grab active:cursor-grabbing animate-pop-in"
-                  onPointerDown={onPickupTentative}
-                >
-                  <img
-                    src={tentativePlacement.item.imageUrl}
-                    alt={tentativePlacement.item.name}
-                    className="w-full h-full object-cover opacity-90"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/10 hover:bg-black/0 transition-colors">
-                    <GripVertical className="text-white drop-shadow-md w-5 h-5 md:w-6 md:h-6" />
-                  </div>
-                </div>
-              )}
 
               {isDragging && (
                 <div className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-200" />

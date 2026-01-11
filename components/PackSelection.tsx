@@ -83,7 +83,6 @@ const PackSelection: React.FC<PackSelectionProps> = ({ onSelect, onBack }) => {
           className="absolute left-0 text-stone-500 hover:text-stone-900 transition-colors px-0 hover:bg-transparent"
         >
           <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-          <span className="hidden md:inline font-bold ml-1">Back</span>
         </Button>
         <h2 className="text-2xl md:text-4xl font-black text-stone-900 text-center uppercase tracking-widest">
           Pick a Vibe
@@ -96,7 +95,7 @@ const PackSelection: React.FC<PackSelectionProps> = ({ onSelect, onBack }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="hidden md:flex absolute -left-12 lg:-20 z-20 h-full w-20 rounded-none justify-end pr-4 text-stone-300 hover:text-stone-900 transition-all hover:bg-transparent"
+          className="hidden md:flex absolute left-0 z-20 h-full w-24 rounded-none justify-center text-stone-400 transition-all h-fit rounded-full aspect-square items-center hover:text-black"
           onClick={handlePrev}
         >
           <ChevronLeft className="w-10 h-10 lg:w-16 lg:h-16" />
@@ -202,7 +201,7 @@ const PackSelection: React.FC<PackSelectionProps> = ({ onSelect, onBack }) => {
         <Button
           variant="ghost"
           size="icon"
-          className="hidden md:flex absolute right-0 z-20 h-full w-24 hover:bg-gradient-to-l hover:from-black/5 hover:to-transparent rounded-none justify-end pr-4 text-stone-400 hover:text-stone-900 transition-all"
+          className="hidden md:flex absolute right-0 z-20 h-full w-24 rounded-none justify-center text-stone-400 transition-all h-fit rounded-full aspect-square items-center hover:text-black"
           onClick={handleNext}
         >
           <ChevronRight className="w-12 h-12" />

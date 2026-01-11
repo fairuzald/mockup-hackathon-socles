@@ -1,12 +1,4 @@
-import {
-  ArrowRight,
-  Check,
-  Eye,
-  Gavel,
-  Hand,
-  HelpCircle,
-  Loader2,
-} from 'lucide-react';
+import { ArrowRight, Check, Eye, Gavel, Hand, Loader2 } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { MAX_TURNS } from '../constants';
 import { GameRoom } from '../lib/firestore';
@@ -186,14 +178,16 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
     e.preventDefault();
     setTentativeTier(null);
 
-    const width = 300;
+    const width = 30;
     const height = 160;
+
+    const originX = width * 0.85;
 
     setDragState({
       isDragging: true,
-      x: e.clientX - width / 2,
+      x: e.clientX - originX,
       y: e.clientY - height / 2,
-      originX: width / 2,
+      originX: originX,
       originY: height / 2,
       width: width,
     });
@@ -228,7 +222,7 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
                   {leader?.name.substring(0, 2).toUpperCase()}
                 </span>
               </div>
-              <div className="absolute -top-2 -right-2 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white shadow-sm transform rotate-12 flex items-center gap-1 animate-bounce-slow">
+              <div className="absolute -top-2 -right-2 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold border-2 border-white shadow-sm transform rotate-12 flex items-center gap-1 animate-bounce-slow z-[1000000]">
                 <Gavel className="w-3 h-3" />
                 JUDGE
               </div>
@@ -429,14 +423,14 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
                     Your Turn!
                   </p>
                   <div className="flex items-center gap-2">
-                    <div
+                    {/* <div
                       className={cn(
                         'w-10 h-10 flex items-center justify-center rounded-lg text-xl font-black border-2 border-stone-200 text-stone-300',
                         'bg-stone-50'
                       )}
                     >
                       <HelpCircle className="w-6 h-6" />
-                    </div>
+                    </div> */}
                   </div>
                   <p className="font-black text-xl leading-tight line-clamp-2">
                     {currentCard.name}
