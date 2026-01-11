@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  ArrowUp,
   Check,
   Copy,
   Eye,
@@ -562,11 +563,20 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
 
           <div className="flex-1 overflow-y-auto mb-4 relative flex">
             {/* Rank Direction Indicator */}
-            <div className="w-6 mr-1 flex flex-col items-center justify-center py-4 bg-stone-100 rounded-full my-auto h-[80%] opacity-50 hover:opacity-100 transition-opacity self-center">
-              <span className="text-[10px] font-black tracking-widest text-stone-400 uppercase -rotate-90 whitespace-nowrap mb-2">
-                Higher
-              </span>
-              <ArrowRight className="w-3 h-3 text-stone-400 -rotate-90 mt-1" />
+            {/* Rank Direction Indicator */}
+            <div className="w-8 mr-1 flex flex-col items-center justify-between py-4 bg-stone-50 rounded-full my-auto h-[90%] self-center shrink-0 border border-stone-100">
+              <div className="flex flex-col items-center gap-2">
+                <ArrowUp className="w-4 h-4 text-cyan-500" />
+                <span className="text-[10px] font-black text-cyan-600 uppercase [writing-mode:vertical-rl] rotate-180 tracking-wider">
+                  Best
+                </span>
+              </div>
+              <div className="w-0.5 flex-1 bg-gradient-to-t from-transparent via-stone-200 to-cyan-100 rounded-full my-1" />
+              <div className="pb-1">
+                <span className="text-[10px] font-bold text-stone-300 uppercase [writing-mode:vertical-rl] rotate-180 tracking-wider block">
+                  Low
+                </span>
+              </div>
             </div>
 
             <div className="flex-1">
@@ -622,11 +632,19 @@ const GameLoopMultiplayer: React.FC<GameLoopMultiplayerProps> = ({
 
         <div className="flex-1 overflow-y-auto mb-4 opacity-100 transition-opacity relative flex">
           {/* Rank Direction Indicator */}
-          <div className="w-6 mr-1 flex flex-col items-center justify-center py-4 bg-stone-100 rounded-full my-auto h-[80%] opacity-50 hover:opacity-100 transition-opacity self-center">
-            <span className="text-[10px] font-black tracking-widest text-stone-400 uppercase -rotate-90 whitespace-nowrap mb-2">
-              Higher
-            </span>
-            <ArrowRight className="w-3 h-3 text-stone-400 -rotate-90 mt-1" />
+          <div className="w-8 mr-1 flex flex-col items-center justify-between py-4 bg-stone-50 rounded-full my-auto h-[90%] self-center shrink-0 border border-stone-100">
+            <div className="flex flex-col items-center gap-2">
+              <ArrowUp className="w-4 h-4 text-cyan-500" />
+              <span className="text-[10px] font-black text-cyan-600 uppercase [writing-mode:vertical-rl] rotate-180 tracking-wider">
+                Best
+              </span>
+            </div>
+            <div className="w-0.5 flex-1 bg-gradient-to-t from-transparent via-stone-200 to-cyan-100 rounded-full my-1" />
+            <div className="pb-1">
+              <span className="text-[10px] font-bold text-stone-300 uppercase [writing-mode:vertical-rl] rotate-180 tracking-wider block">
+                Low
+              </span>
+            </div>
           </div>
 
           <div className="flex-1">
